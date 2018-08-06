@@ -14,7 +14,29 @@ fi
 
 __="${MATH_ROOT_DIR}"
 
+
+errCheck.Matrix() {
+    if [[ "${#@}" -eq 0 ]]; then
+        printf 'Argument cannot be null.\n'
+        return 1
+    fi
+    :
+    if [[ ! "${1}"  =~ ^[a-zA-Z]+$ ]]; then
+        printf 'Names may only include letters.\n'
+        return 1
+    fi
+
+    return
+}
+
+xstCheck.Matrix() {
+    :
+}
+
 function Matrix() {
+    errCheck.Matrix "${@}" || return 1
+    xstCheck.Matrix "${1}" || return 1
+
 
     declare -r name="${1}"
     shift
@@ -43,8 +65,8 @@ function Matrix() {
             M+=("M${ni}${mi}")
             (( ni+=1 ))
         done
-        let ni=0
-        let mi+=1
+        (( ni=0 ))
+        (( mi+=1 ))
     done
 
     out_kv=$'( '
@@ -57,18 +79,40 @@ function Matrix() {
 }
 
 
-function Matrix::read() {
+function Matrix.read() {
     IFS=
-
     L="$(<"${__}/matrix.$1")"
     echo "$L"
 }
 
-# function Matrix::list() {
-#     X=($MATH_ROOT_DIR/matrix.*)
-#     printf '%s\n' ${X[@]/${__}\/matrix\./}
-#     # for matrix in $MATH_ROOT_DIR/matrix.*; do
-# #         :
-# #         echo $matrix
-# #     done
-# }
+function Matrix.list() {
+    for I in "${__}/matrix".*; do
+        printf '%s\n' "${I[@]/${__}\/matrix\./}"
+    done
+}
+
+
+function Matrix.delete() {
+    :
+    if [[ -f "${__}/matrix.${1}" ]]; then
+        rm "${__}/matrix.${1}"
+        printf 'Matrix %s removed from cache.\n' "${1}"
+    else
+        printf 'Matrix %s not found.\n' "${1}"
+    fi
+}
+
+
+
+###### BOOLEAN OPERATIONS
+
+
+function Matrix.equiv() {
+    local A="$(Matrix.read "${1}")"
+    local B="$(Matrix.read "${2}")"
+
+
+    [[ "${A}" == "${B}" ]] && return 0
+
+    return 1
+}
