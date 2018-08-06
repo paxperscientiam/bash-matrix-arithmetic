@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+shopt -s nullglob
+shopt -s extglob
+shopt -s nocasematch
+
+
+unset CDPATH
+
+MATH_ROOT_DIR="${TMPDIR}/matrix"
+
+if [[ ! -d $MATH_ROOT_DIR ]]; then
+    mkdir "${MATH_ROOT_DIR}"
+fi
+
+__="${MATH_ROOT_DIR}"
+
+function Matrix() {
+
+    declare -r name="${1}"
+    shift
+
+    local ni; ni=0
+    local mi; mi=0
+
+    local zv;
+    local out_kv=""
+
+    declare -A Matrix
+
+    declare -a T=("$@")
+
+    declare -a M
+
+    local n; n=$((${#T[@]} - 1))
+    local x; IFS=, x=(${T[0]})
+    local m; m=$((${#x[@]} - 1)); unset x
+
+    while [[ $mi -le ${m} ]]; do
+        while [[ $ni -le ${n} ]]; do
+            zv=(${T[ni]})
+            Matrix[M${ni}${mi}]=${zv[mi]}
+            eval 'eval M${ni}${mi}=${zv[mi]}'
+            M+=("M${ni}${mi}")
+            (( ni+=1 ))
+        done
+        let ni=0
+        let mi+=1
+    done
+
+    out_kv=$'( '
+    for k in ${!Matrix[@]}; do
+        out_kv+="[${k}]=${!k} "
+    done
+    out_kv+=$')'
+
+    printf '%s' "${out_kv}" >| "${__}/matrix.${name}"
+}
+
+
+function Matrix::read() {
+    IFS=
+
+    L="$(<"${__}/matrix.$1")"
+    echo "$L"
+}
+
+# function Matrix::list() {
+#     X=($MATH_ROOT_DIR/matrix.*)
+#     printf '%s\n' ${X[@]/${__}\/matrix\./}
+#     # for matrix in $MATH_ROOT_DIR/matrix.*; do
+# #         :
+# #         echo $matrix
+# #     done
+# }
