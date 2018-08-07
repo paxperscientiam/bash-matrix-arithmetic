@@ -101,8 +101,15 @@ function Matrix() {
 function Matrix.read() {
    #  IFS=
     eval X='"$(<"${__}/matrix.$1")"'
-    echo "${X}"
+    printf '%s\n' "${X[@]}"
 }
+
+function Matrix.show() {
+    while read -r p; do
+        printf '[ %s ]\n' "${p}"
+    done <"${__}/matrix.$1"
+}
+
 
 function Matrix.list() {
     local L
