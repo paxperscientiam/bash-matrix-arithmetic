@@ -125,27 +125,49 @@ function Matrix.list() {
 }
 
 function Matrix.reset() {
-    for I in "${__}/matrix".*; do
+    local dir
+    dir=$(pwd)
+
+    cd "${__:?}" || return 1
+
+    for I in "./matrix".*; do
         \rm "${I}"
     done
+
+    cd "${dir}" || return 1
 }
 
 
 
 
 function Matrix.delete() {
+    local dir
+    dir=$(pwd)
+
+    cd "${__:?}" || return 1
     :
-    if [[ -f "${__}/matrix.${1}" ]]; then
-        rm "${__}/matrix.${1}"
+    if [[ -f "./matrix.${1}" ]]; then
+        rm "./matrix.${1}"
         printf 'Matrix %s removed from cache.\n' "${1}"
     else
         printf 'Matrix %s not found.\n' "${1}"
     fi
+
+    cd "${dir}" || return 1
+
 }
 
 function Matrix.clear() {
-:
+    local dir
+    dir=$(pwd)
 
+    cd "${__:?}" || return 1
+    :
+    if [[ -f "./matrix.${1}" ]]; then
+        printf 'null' >| "./matrix.${1}"
+    fi
+
+    cd "${dir}" || return 1
 }
 
 ###### BOOLEAN OPERATIONS
