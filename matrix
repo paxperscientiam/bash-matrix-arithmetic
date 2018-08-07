@@ -25,7 +25,7 @@ errCheck.Matrix() {
         printf 'Names may only include letters.\n'
         return 1
     fi
-
+    :
     IFS=,
     for x in ${@:2}
     do
@@ -48,6 +48,7 @@ unset Y
 
 declare -A X
 declare -A Y
+
 
 
 function Matrix() {
@@ -103,10 +104,25 @@ function Matrix.read() {
 }
 
 function Matrix.list() {
+    local L
+    L=("${__}/matrix".*)
+
+    [[ "${#L[@]}" -eq 0 ]] && \
+        printf '%s\n' "There are no matrices defined." && \
+        return
+
     for I in "${__}/matrix".*; do
         printf '%s\n' "${I[@]/${__}\/matrix\./}"
     done
 }
+
+function Matrix.reset() {
+    for I in "${__}/matrix".*; do
+        \rm "${I}"
+    done
+}
+
+
 
 
 function Matrix.delete() {
