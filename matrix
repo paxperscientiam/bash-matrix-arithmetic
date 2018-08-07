@@ -61,6 +61,7 @@ function Matrix() {
 
     local ni; ni=0
     local mi; mi=0
+    local zi; zi=0
 
     local zv;
     local out_kv=""
@@ -87,13 +88,13 @@ function Matrix() {
         (( mi+=1 ))
     done
 
-    out_kv=$'( '
     for k in ${!Matrix[@]}; do
-        out_kv+="[${k}]=${!k} "
+        out_kv+="${!k} "
+        [[ "${zi}" -eq "${m}" ]] && out_kv+="\\n"
+        (( zi+=1 ))
     done
-    out_kv+=$')'
 
-    printf '%s' "${out_kv}" >| "${__}/matrix.${name}"
+    echo -e "${out_kv}" >| "${__}/matrix.${name}"
 }
 
 
