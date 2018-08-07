@@ -26,12 +26,29 @@ errCheck.Matrix() {
         return 1
     fi
 
-    return
+    IFS=,
+    for x in ${@:2}
+    do
+        if [[  ! $x =~ ^[0-9]+$ ]]; then
+            printf 'All elements must be numeric!\n'
+            return 1
+        fi
+
+    done
+
+    return 0
 }
 
 xstCheck.Matrix() {
     :
 }
+
+unset X
+unset Y
+
+declare -A X
+declare -A Y
+
 
 function Matrix() {
     errCheck.Matrix "${@}" || return 1
@@ -80,9 +97,9 @@ function Matrix() {
 
 
 function Matrix.read() {
-    IFS=
-    L="$(<"${__}/matrix.$1")"
-    echo "$L"
+   #  IFS=
+    eval X='"$(<"${__}/matrix.$1")"'
+    echo "${X}"
 }
 
 function Matrix.list() {
@@ -102,7 +119,10 @@ function Matrix.delete() {
     fi
 }
 
+function Matrix.clear() {
+:
 
+}
 
 ###### BOOLEAN OPERATIONS
 
@@ -111,8 +131,38 @@ function Matrix.equiv() {
     local A="$(Matrix.read "${1}")"
     local B="$(Matrix.read "${2}")"
 
+    if [[ "${A}" == "${B}" ]]
+    then
+        printf 'TRUE\n' && return 0
+    else
+        printf 'FALSE\n'
+        return 1
+    fi
+}
 
-    [[ "${A}" == "${B}" ]] && return 0
 
-    return 1
+
+
+
+###### ARITHMETIC OPERATIONS
+
+
+function Matrix.add() {
+    read -r $1
+
+  #  echo "${X}"
+
+    return
+ #    local X
+#     local Y
+
+#     X=$(eval ($(Matrix.read "${1}")))
+
+#     echo "${X[M01]}"
+
+#     for I in "${X[@]}"
+#     do
+#         echo $I
+#     done
+#     :
 }
