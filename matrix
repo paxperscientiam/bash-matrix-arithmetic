@@ -61,6 +61,8 @@ function Matrix() {
 
     local ni; ni=0
     local mi; mi=0
+    :
+    local xi; xi=0
     local zi; zi=0
 
     local zv;
@@ -90,7 +92,10 @@ function Matrix() {
 
     for k in ${!Matrix[@]}; do
         out_kv+="${!k} "
-        [[ "${zi}" -eq "${m}" ]] && out_kv+="\\n"
+        if [[ "${zi}" -eq "${m}" && "${xi}" -lt "${n}" ]]; then
+            out_kv+="\\n"
+            (( xi+=1 ))
+        fi
         (( zi+=1 ))
     done
 
@@ -106,7 +111,7 @@ function Matrix.read() {
 
 function Matrix.show() {
     while read -r p; do
-        printf '[ %s ]\n' "${p}"
+        printf '[ %s]\n' "${p}"
     done <"${__}/matrix.$1"
 }
 
