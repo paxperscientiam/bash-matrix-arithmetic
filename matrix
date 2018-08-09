@@ -52,6 +52,7 @@ declare -A Y
 
 
 function Matrix() {
+    # Good
     errCheck.Matrix "${@}" || return 1
     xstCheck.Matrix "${1}" || return 1
 
@@ -73,13 +74,13 @@ function Matrix.read() {
     [[ ! -f "${__}/matrix.$1" ]] && \
         printf '%s\n' "No such matrix." && return
 
-
     while read -r p; do
         printf '%s\n' "${p}"
     done <"${__}/matrix.$1"
 }
 
 function Matrix.show() {
+    # GOOD
     while IFS=, read -r p; do
         printf '[ %s ]\n' "${p}"
     done <"${__}/matrix.$1"
