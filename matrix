@@ -81,7 +81,6 @@ function Matrix() {
     while [[ $mi -le ${m} ]]; do
         while [[ $ni -le ${n} ]]; do
             zv=(${T[ni]})
-            Matrix[M${ni}${mi}]=${zv[mi]}
             eval 'eval M${ni}${mi}=${zv[mi]}'
             M+=("M${ni}${mi}")
             (( ni+=1 ))
@@ -90,8 +89,8 @@ function Matrix() {
         (( mi+=1 ))
     done
 
-    for k in ${!Matrix[@]}; do
-        out_kv+="${!k} "
+    for k in ${!M[@]}; do
+        out_kv+="${!M[$k]} "
         if [[ "${zi}" -eq "${m}" && "${xi}" -lt "${n}" ]]; then
             out_kv+="\\n"
             (( xi+=1 ))
@@ -104,9 +103,13 @@ function Matrix() {
 
 
 function Matrix.read() {
-   #  IFS=
-    eval X='"$(<"${__}/matrix.$1")"'
-    printf '%s\n' "${X[@]}"
+    [[ ! -f "${__}/matrix.$1" ]] && \
+        printf '%s\n' "No such matrix." && return
+
+
+    while read -r p; do
+        printf '%s\n' "${p}"
+    done <"${__}/matrix.$1"
 }
 
 function Matrix.show() {
@@ -114,7 +117,6 @@ function Matrix.show() {
         printf '[ %s]\n' "${p}"
     done <"${__}/matrix.$1"
 }
-
 
 function Matrix.list() {
     local L
@@ -130,6 +132,13 @@ function Matrix.list() {
 }
 
 function Matrix.reset() {
+    read -p "Delete all matrices? [y/n]" -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]
+    then
+        return 1
+    fi
+
     local dir
     dir=$(pwd)
 
@@ -141,8 +150,6 @@ function Matrix.reset() {
 
     cd "${dir}" || return 1
 }
-
-
 
 
 function Matrix.delete() {
@@ -179,8 +186,8 @@ function Matrix.clear() {
 
 
 function Matrix.equiv() {
-    local A="$(Matrix.read "${1}")"
-    local B="$(Matrix.read "${2}")"
+    local A; A="$(Matrix.read "${1}")"
+    local B; B="$(Matrix.read "${2}")"
 
     if [[ "${A}" == "${B}" ]]
     then
@@ -199,21 +206,37 @@ function Matrix.equiv() {
 
 
 function Matrix.add() {
-    read -r $1
+    local A; A="$(Matrix.read "${1}")"
+    local B; B="$(Matrix.read "${2}")"
 
-  #  echo "${X}"
+    local count; count=0
+
+    IFS=$'\n'
+    for A_r in ${A[@]}; do
+        :
+        IFS=" "
+        for A_el in $A_r; do
+            echo $A_el
+        done
+        return
+    done
+    return
+
+    IFS=$' ' read -r -a a <<< "${A}"
+    IFS=$'\n' read -r -a b <<< "${B}"
+
+    echo ${a[@]}
 
     return
- #    local X
-#     local Y
 
-#     X=$(eval ($(Matrix.read "${1}")))
 
-#     echo "${X[M01]}"
+    IFS=" " read -r -a bi <<< "${b}"
 
-#     for I in "${X[@]}"
-#     do
-#         echo $I
-#     done
-#     :
+    echo "${A}"
+    return
+    for ai in ${a}; do
+        echo $(( "${ai}"+"${bi[$count]}" ))
+       (( count+=1 ))
+    done
+
 }
