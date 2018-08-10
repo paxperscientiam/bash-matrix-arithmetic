@@ -40,7 +40,8 @@ errCheck.Matrix() {
 }
 
 xstCheck.Matrix() {
-    :
+    [[ ! -f "${__}/matrix.$1" ]] && \
+        printf '%s\n' "No such matrix." && return 1
 }
 
 unset X
@@ -50,11 +51,10 @@ declare -A X
 declare -A Y
 
 
-
 function Matrix() {
     # Good
-    errCheck.Matrix "${@}" || return 1
-    xstCheck.Matrix "${1}" || return 1
+ #   errCheck.Matrix "${@}" || return 1
+ #   xstCheck.Matrix "${1}" && return 1
 
     declare -r name="${1}"
     shift
@@ -65,14 +65,13 @@ function Matrix() {
     do
         out+="${oo}\\n"
     done
-    out="${out%%\\n}"
+    out="${out%\\n}"
     echo -e "${out}" >| "${__}/matrix.${name}"
 }
 
-
 function Matrix.read() {
-    [[ ! -f "${__}/matrix.$1" ]] && \
-        printf '%s\n' "No such matrix." && return
+  # xstCheck.Matrix "$1" || return 1
+ #   return
 
     while read -r p; do
         printf '%s\n' "${p}"
@@ -150,9 +149,8 @@ function Matrix.clear() {
     cd "${dir}" || return 1
 }
 
+
 ###### BOOLEAN OPERATIONS
-
-
 function Matrix.equiv() {
     local A; A="$(Matrix.read "${1}")"
     local B; B="$(Matrix.read "${2}")"
@@ -167,28 +165,41 @@ function Matrix.equiv() {
 }
 
 
-
-
-
 ###### ARITHMETIC OPERATIONS
-
-
 function Matrix.add() {
+    args=("${@}")
+
+    [[ "${#args[@]}" -lt 2 ]] && \
+        printf '%s\n' "Requires at least two args." && \
+        return 1
+
     local A; A="$(Matrix.read "${1}")"
     local B; B="$(Matrix.read "${2}")"
 
     local count_r; count_r=0
     local count_c; count_c=0
+    local result; result=""
 
     IFS=$'\n'
     for A_r in ${A}; do
-        echo ${A_r}
-      #   IFS=" "
-#         for A_el in ${A_r}; do
-#            # echo "${A_el}"
-#             (( count_c+=1 ))
-#         done
-#         (( count_r+=1 ))
-    done
+        IFS=$'\n'
+        B_r=(${B})
+        IFS=,
+        B_el=(${B_r[$count_r]})
+        for A_el in ${A_r}; do
+            a="${A_el}"
+            b=${B_el[$count_c]}
 
+            result+="$(( a+b )),"
+            (( count_c+=1 ))
+        done
+        result=${result%,}
+        #
+        result+="\\n"
+        count_c=0
+        (( count_r+=1 ))
+    done
+    result="${result%\\n}"
+    IFS=
+    echo -e "${result}"
 }
