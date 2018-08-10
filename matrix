@@ -189,7 +189,6 @@ function Matrix.add() {
         for A_el in ${A_r}; do
             a="${A_el}"
             b=${B_el[$count_c]}
-
             result+="$(( a+b )),"
             (( count_c+=1 ))
         done
