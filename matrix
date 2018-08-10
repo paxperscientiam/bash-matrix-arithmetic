@@ -202,3 +202,65 @@ function Matrix.add() {
     IFS=
     echo -e "${result}"
 }
+
+
+function Matrix.subtract() {
+    local A; A="${1}"
+    local B; B="$(Matrix.read "${2}")"
+
+    IFS=
+    B='-'${B//$'\n'/$'\n'\-}
+
+    echo -e "${B//,/,-}" >| "${__:?}/matrix.not.${2}"
+
+    Matrix.add "${1}" "not.${2}"
+}
+
+
+
+
+##### Transformations
+function Matrix.xpose.1() {
+    # naive
+    local A; A="$(Matrix.read "${1}")"
+
+    IFS=$'\n'
+
+    local count_r; count_r=0
+    local count_c; count_c=0
+    local result; result=""
+
+    local r; r=''
+
+    IFS=$'\n'
+    for A_r in ${A}; do
+        IFS=,
+        _r=(${A_r[@]})
+        IFS=
+        r+="${_r[0]},"
+ #        IFS=$'\n'
+#         IFS=,
+#         for A_el in ${A_r}; do
+#             a="${A_el}"
+#             echo $a;return
+#             result+="$(( a )),"
+#             (( count_c+=1 ))
+#         done
+#         result=${result%,}
+#         #
+#         result+="\\n"
+#         count_c=0
+#         (( count_r+=1 ))
+
+    done
+    echo $r;return
+    result="${result%\\n}"
+    IFS=
+    echo -e "${result}"
+
+}
+
+
+function Matrix.inverse() {
+    :
+}
