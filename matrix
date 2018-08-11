@@ -6,6 +6,7 @@ shopt -s nocasematch
 
 unset CDPATH
 
+
 MATH_ROOT_DIR="${TMPDIR}/matrix"
 
 if [[ ! -d $MATH_ROOT_DIR ]]; then
@@ -70,6 +71,12 @@ function Matrix.read() {
 
 function Matrix.show() {
     # GOOD
+    if [[ "${1}" == '!' ]]; then
+        shift
+        printf '[ %s ]\n' "${@// / \]$'\n'\[ }"
+        return
+    fi
+
     IFS=
     while read -r p; do
         printf '[ %s ]\n' "${p// / \]$'\n'\[ }"
@@ -190,8 +197,8 @@ function Matrix.product.scalar() {
         result="${result% }"
         Matrix "${C}" "${result}"
     else
-        result="${result%\\n}"
-        echo -e "${result// /$'\n'}"
+        #result="${result%\\n}"
+        echo -e "${result// /}"
     fi
 }
 
@@ -216,11 +223,15 @@ function Matrix.negate() {
 
 
 function Matrix.add() {
-    args=("${@}")
+   # new matrix
+    local C;
+    local args;
+    if [[ "${1}" == *: ]]; then
+        C="${1%:}"
+        shift
+    fi
 
-    [[ "${#args[@]}" -lt 2 ]] && \
-        printf '%s\n' "Requires at least two args." && \
-        return 1
+
 
     local A; A="$(Matrix.read "${1}")"
     local B; B="$(Matrix.read "${2}")"
@@ -229,9 +240,9 @@ function Matrix.add() {
     local count_c; count_c=0
     local result; result=""
 
-    IFS=$'\n'
+    IFS=" "
     for A_r in ${A}; do
-        IFS=$'\n'
+        IFS=" "
         B_r=(${B})
         IFS=,
         B_el=(${B_r[$count_r]})
@@ -243,13 +254,19 @@ function Matrix.add() {
         done
         result=${result%,}
         #
-        result+="\\n"
+        result+=" "
         count_c=0
         (( count_r+=1 ))
     done
-    result="${result%\\n}"
-    IFS=
-    echo -e "${result}"
+
+    if [[ ! -z $C ]]; then
+        result="${result% }"
+        Matrix "${C}" "${result}"
+    else
+        result="${result%\\n}"
+        echo -e "${result// /$'\n'}"
+    fi
+
 }
 
 
