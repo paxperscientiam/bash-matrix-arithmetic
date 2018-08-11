@@ -197,8 +197,8 @@ function Matrix.product.scalar() {
         result="${result% }"
         Matrix "${C}" "${result}"
     else
-        #result="${result%\\n}"
-        echo -e "${result// /}"
+        result="${result% }"
+        Matrix.show ! "${result}"
     fi
 }
 
