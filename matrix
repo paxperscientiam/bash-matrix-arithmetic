@@ -55,33 +55,24 @@ function Matrix() {
     # Good
  #   errCheck.Matrix "${@}" || return 1
  #   xstCheck.Matrix "${1}" && return 1
-
     declare -r name="${1}"
     shift
-
-    IFS=" "
-    out=""
-    for oo in "${@}"
-    do
-        out+="${oo}\\n"
-    done
-    out="${out%\\n}"
-    echo -e "${out}" >| "${__}/matrix.${name}"
+    IFS=
+    echo -e "${@}" >| "${__}/matrix.${name}"
 }
 
 function Matrix.read() {
   # xstCheck.Matrix "$1" || return 1
  #   return
-
-    while read -r p; do
-        printf '%s\n' "${p}"
-    done <"${__}/matrix.$1"
+    IFS=
+    cat "${__}/matrix.$1"
 }
 
 function Matrix.show() {
     # GOOD
-    while IFS=, read -r p; do
-        printf '[ %s ]\n' "${p}"
+    IFS=
+    while read -r p; do
+        printf '[ %s ]\n' "${p// / \]$'\n'\[ }"
     done <"${__}/matrix.$1"
 }
 
@@ -165,7 +156,65 @@ function Matrix.equiv() {
 }
 
 
+function Matrix.product.scalar() {
+    # new matrix
+    local C;
+    if [[ "${1}" == *: ]]; then
+        C="${1%:}"
+        shift
+    fi
+
+    local A; A="$(Matrix.read "${1}")"
+    local b; b="${2}"
+    local count_r; count_r=0
+    local count_c; count_c=0
+    local result; result=""
+
+    IFS=" "
+    for A_r in ${A}; do
+        IFS=" "
+        IFS=,
+        for A_el in ${A_r}; do
+            a="${A_el}"
+            result+="$(( a*b )),"
+            (( count_c+=1 ))
+        done
+        result=${result%,}
+        #
+        result+=" "
+        count_c=0
+        (( count_r+=1 ))
+    done
+
+    if [[ ! -z $C ]]; then
+        result="${result% }"
+        Matrix "${C}" "${result}"
+    else
+        result="${result%\\n}"
+        echo -e "${result// /$'\n'}"
+    fi
+}
+
+
 ###### ARITHMETIC OPERATIONS
+function Matrix.negate() {
+    local B;
+    local args;
+    if [[ "${1}" == *: ]]; then
+        B="${1%:}"
+        args="${1} ${2}"
+        shift
+    fi
+
+    IFS=" "
+    args="${args:=${1}}"
+    args+=$' -1'
+    args=(${args[@]})
+    Matrix.product.scalar "${args[@]}"
+}
+
+
+
 function Matrix.add() {
     args=("${@}")
 
@@ -205,18 +254,9 @@ function Matrix.add() {
 
 
 function Matrix.subtract() {
-    local A; A="${1}"
-    local B; B="$(Matrix.read "${2}")"
-
-    IFS=
-    B='-'${B//$'\n'/$'\n'\-}
-
-    echo -e "${B//,/,-}" >| "${__:?}/matrix.not.${2}"
-
+    Matrix.negate "${2}"
     Matrix.add "${1}" "not.${2}"
 }
-
-
 
 
 ##### Transformations
