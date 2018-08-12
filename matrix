@@ -96,7 +96,7 @@ function Matrix.list() {
     done
 }
 
-function Matrix.reset() {
+function Matrix.workspace.wipe() {
     read -p "Delete all matrices? [y/n]" -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]
@@ -203,6 +203,86 @@ function Matrix.product.scalar() {
 }
 
 
+
+Matrix.product() {
+    local A; A="$(Matrix.read "${1}")"
+    local B; B="$(Matrix.read "${2}")"
+    local C
+
+    local i; i=0
+    local j; j=0
+
+    local n
+    local m
+    local p
+
+    # get number of columns in A
+    IFS=" "
+    B_m=(${B[0]})
+    B_m0="${B_m}"
+    IFS=,
+    B_p=(${B_m0})
+    p=${#B_p[@]}
+
+    A_m=(${A})
+    n=${#A_m[@]}
+    A_m0="${A_m[0]}"
+    IFS=,
+    A_n=(${A_m0})
+    m=${#A_n[@]}
+
+
+
+    until [[ $i -eq $n ]]; do
+        echo i=$i
+        until [[ $j -eq $p ]]; do
+            echo j=$j
+            (( j++ ))
+        done
+        (( i++ ))
+    done
+
+
+    return
+
+
+    IFS=" "
+    for A_r in ${A}; do
+        IFS=" "
+        echo "${A_r}"
+        return
+        B_r=(${B})
+        IFS=,
+        B_el=(${B_r[$count_r]})
+        for A_el in ${A_r}; do
+            let sum=0
+            a="${A_el}"
+            b=${B_el[$count_c]}
+            result+="$(( a*b )),"
+            (( count_c+=1 ))
+
+        done
+             count_c=0
+             (( count_r+=1 ))
+    done
+
+           result="${result% }"
+   #     Matrix.show ! "${result}"
+#     Input: matrices A and B
+#     Let C be a new matrix of the appropriate size
+#     For i from 1 to n:
+#         For j from 1 to p:
+#             Let sum = 0
+#             For k from 1 to m:
+#                 Set sum ← sum + Aik × Bkj
+#             Set Cij ← sum
+#     Return C
+
+
+
+
+}
+
 ###### ARITHMETIC OPERATIONS
 function Matrix.negate() {
     local B;
@@ -230,8 +310,6 @@ function Matrix.add() {
         C="${1%:}"
         shift
     fi
-
-
 
     local A; A="$(Matrix.read "${1}")"
     local B; B="$(Matrix.read "${2}")"
@@ -263,8 +341,8 @@ function Matrix.add() {
         result="${result% }"
         Matrix "${C}" "${result}"
     else
-        result="${result%\\n}"
-        echo -e "${result// /$'\n'}"
+        result="${result% }"
+        Matrix.show ! "${result}"
     fi
 
 }
@@ -276,44 +354,89 @@ function Matrix.subtract() {
 }
 
 
+
+
 ##### Transformations
 function Matrix.xpose.1() {
     # naive
     local A; A="$(Matrix.read "${1}")"
 
-    IFS=$'\n'
-
     local count_r; count_r=0
     local count_c; count_c=0
     local result; result=""
 
-    local r; r=''
+    local n; n=0
+    local m; m=0
 
-    IFS=$'\n'
+
+    IFS=,
+    _serial="${A// /,}"
+    serial=(${_serial[@]})
+
+    # matrix length
+    length="${#serial[@]}"
+
+    IFS=" "
     for A_r in ${A}; do
-        IFS=,
-        _r=(${A_r[@]})
-        IFS=
-        r+="${_r[0]},"
- #        IFS=$'\n'
-#         IFS=,
-#         for A_el in ${A_r}; do
-#             a="${A_el}"
-#             echo $a;return
-#             result+="$(( a )),"
-#             (( count_c+=1 ))
-#         done
-#         result=${result%,}
-#         #
-#         result+="\\n"
-#         count_c=0
-#         (( count_r+=1 ))
-
+        (( n+=1 ))
     done
-    echo $r;return
-    result="${result%\\n}"
-    IFS=
-    echo -e "${result}"
+
+    IFS=" "
+    A_r=(${A})
+
+    IFS=,
+    for A_c in ${A_r[0]}; do
+        (( m+=1 ))
+    done
+
+
+
+    count=0
+    _n=0
+    _m=0
+    until [[ $count -eq $length ]]; do
+        :
+        until [[ $_n -eq $n ]]; do
+            echo $count
+            (( _n+=1 ))
+        done
+        (( count+=1 ))
+    done
+
+
+
+    return
+
+
+   #  IFS=" "
+#     for A_r in ${A}; do
+#         IFS=,
+#         _r=(${A_r[@]})
+#         m="${#_r[@]}"
+
+#         IFS=" "
+#         _c=(${A_r[@]})
+#         echo "${_c[@]}";return
+
+#      #   until [[ $z -eq
+#   #       for A_el in ${A_r}; do
+# #             z="${count_r},${count_c}=${A_el}"
+# #             echo "${z}"
+
+
+# #             (( count_c+=1 ))
+
+# #         done
+# #         result=${result%,}
+# #         #
+# #         result+=" "
+# #         count_c=0
+# #         (( count_r+=1 ))
+
+#     done
+#     result="${result%\\n}"
+#     IFS=
+#     echo -e "${result}"
 
 }
 
@@ -321,3 +444,5 @@ function Matrix.xpose.1() {
 function Matrix.inverse() {
     :
 }
+
+Matrix.product A B
