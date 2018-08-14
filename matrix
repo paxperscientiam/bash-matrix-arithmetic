@@ -16,9 +16,22 @@ fi
 __="${MATH_ROOT_DIR}"
 
 
+xstCheck.Matrix() {
+    IFS=
+    [[ ! -f "${__}/matrix.$1" ]] && \
+        printf '%s\n' "No such matrix." && return 1
+
+    return
+}
+
 errCheck.Matrix() {
     if [[ "${#@}" -eq 0 ]]; then
         printf 'Argument cannot be null.\n'
+        return 1
+    fi
+
+    if ! xstCheck.Matrix "${@}"
+    then
         return 1
     fi
     :
@@ -27,23 +40,19 @@ errCheck.Matrix() {
         return 1
     fi
     :
-    IFS=,
-    for x in ${@:2}
-    do
-        if [[  ! $x =~ ^[0-9]+$ ]]; then
-            printf 'All elements must be numeric!\n'
-            return 1
-        fi
+#     IFS=,
+#     for x in ${@:2}
+#     do
+#         if [[  ! $x =~ ^[0-9]+$ ]]; then
+#             printf 'All elements must be numeric!\n'
+#             return 1
+#         fi
 
-    done
+#     done
 
     return 0
 }
 
-xstCheck.Matrix() {
-    [[ ! -f "${__}/matrix.$1" ]] && \
-        printf '%s\n' "No such matrix." && return 1
-}
 
 unset X
 unset Y
@@ -62,15 +71,21 @@ function Matrix() {
     echo -e "${@}" >| "${__}/matrix.${name}"
 }
 
+
+
 function Matrix.read() {
-  # xstCheck.Matrix "$1" || return 1
- #   return
+    # check
+    #xstCheck.Matrix "${1}" || return 1
+
     IFS=
     cat "${__}/matrix.$1"
 }
 
 function Matrix.show() {
-    # GOOD
+    # check
+
+#    [[ errCheck.Matrix "${1}" -ne 0 ]] && return 1
+
     if [[ "${1}" == '!' ]]; then
         shift
         printf '[ %s ]\n' "${@// / \]$'\n'\[ }"
@@ -82,6 +97,55 @@ function Matrix.show() {
         printf '[ %s ]\n' "${p// / \]$'\n'\[ }"
     done <"${__}/matrix.$1"
 }
+
+
+function Matrix.decompose.row() {
+    :
+    # should it receive whole matrix or one at a time?
+    local row;
+    local result;
+    IFS=,
+    row=(${1})
+    count=0
+    for el in ${row[@]}; do
+        if [[ "${count}" -eq "${2}" ]]; then
+            echo $el
+            break
+        fi
+        (( count++ ))
+    done
+}
+
+function Matrix.decompose() {
+    local A; A="$(Matrix.read "${1}")"
+    local count; count=0
+    IFS=" "
+    A_r=(${A})
+    for el in ${A_r[@]}; do
+        if [[ "${count}" -eq "${2}" ]]; then
+            Matrix.decompose.row "${el}" "${3}"
+            break
+        fi
+        (( count++ ))
+    done
+}
+
+function Matrix.elementGet() {
+    # get element at "coordinate"
+    IFS=
+    local A; A="$(Matrix.read "${1}")"
+    local xy
+    local r
+    local c
+
+    IFS=,
+    xy=(${2})
+    r=${xy[0]}
+    c=${xy[1]}
+
+    Matrix.decompose "${1}" "${r}" "${c}"
+}
+
 
 function Matrix.list() {
     local L
@@ -202,6 +266,47 @@ function Matrix.product.scalar() {
     fi
 }
 
+Matrix.product.strassen() {
+    local M
+
+    local A; A="$(Matrix.read "${1}")"
+    local B; B="$(Matrix.read "${2}")"
+
+    local i; i=0
+    local j; j=0
+
+
+    IFS=" "
+    A_r=(${A})
+    for A_c in ${A_r[@]}; do
+        IFS=,
+        for ac in ${A_c[@]}; do
+         #   echo $ac
+          #  echo M${i}${j}
+
+            (( i+=1 ))
+        done
+        return
+        let i=0
+        (( j+=1 ))
+    done
+
+
+#     IFS=,
+#     A_c=(${A_r[0]})
+#     echo ${A_c[0]}
+
+    return
+
+    local m1
+    local m2
+    local m3
+    local m4
+    local m5
+    local m6
+    local m7
+
+    }
 
 
 Matrix.product() {
@@ -209,14 +314,17 @@ Matrix.product() {
     local B; B="$(Matrix.read "${2}")"
     local C
 
+    # iterators
     local i; i=0
     local j; j=0
+    local k; k=0
 
+    # sizes
     local n
     local m
     local p
 
-    # get number of columns in A
+    # Number of columns minus 1 in B
     IFS=" "
     B_m=(${B[0]})
     B_m0="${B_m}"
@@ -224,63 +332,87 @@ Matrix.product() {
     B_p=(${B_m0})
     p=${#B_p[@]}
 
+    # number of rows minus 1 in A
+    IFS=" "
     A_m=(${A})
     n=${#A_m[@]}
+
+    # number of columns minus 1 in A
     A_m0="${A_m[0]}"
     IFS=,
     A_n=(${A_m0})
     m=${#A_n[@]}
 
-
-
+    local slice
+    # don't touch outer loop!
     until [[ $i -eq $n ]]; do
-        echo i=$i
-        until [[ $j -eq $p ]]; do
-            echo j=$j
+        IFS=" "
+        i_k=(${A})
+        #echo ${i_k[$i]}
+        until [[ $j -eq $(( p+1 )) ]]; do
+            let sum=0
+            #k_p
+            IFS=" "
+            k_p=(${B})
+            _kp=${k_p[$j]}
+            IFS=,
+            kp=(${_kp})
+            slice+=${kp[0]}
+          #  echo ${slice}
+            #return
+            until [[ $k -eq $(( m+1 )) ]]; do
+                echo $slice
+
+               # echo ${k_p[@]}
+
+      #           :
+#                 IFS=" "
+#                 i_k=(${A})
+#                 echo ${i_k[$i]}
+
+
+#                # return
+#                 # this is first row of A
+#                 IFS=,
+#                 fgd=(${i_k[$i]})
+#                 #echo ${fgd[$k]}
+
+#                 IFS=" "
+#                 _kj=(${B[0]})
+
+#                 IFS=,
+#                 for o in ${_kj[0]}; do
+#                     IFS=,
+#                     ik=${fgd[$k]}
+#                     kj=$o
+#                     IFS=
+#                  #   echo "A_mn=$ik"
+#                  ##   echo "B_pm=$kj"
+#                     #sum=$(( $sum + (( $kj*$ik )) ))
+#                     #echo $sum
+#                 done
+             #   return
+                #return
+                #echo $m
+
+                #echo $i $k
+                # m is number of columns in A(k)
+                # n is number of rows in A(i)
+
+                # m is number of rows in B(k)
+                # p is number of columns in B(p)
+                (( k++ ))
+            done
+
+            k=0
+           # return
             (( j++ ))
         done
+        slice=""
+
+        j=0
         (( i++ ))
     done
-
-
-    return
-
-
-    IFS=" "
-    for A_r in ${A}; do
-        IFS=" "
-        echo "${A_r}"
-        return
-        B_r=(${B})
-        IFS=,
-        B_el=(${B_r[$count_r]})
-        for A_el in ${A_r}; do
-            let sum=0
-            a="${A_el}"
-            b=${B_el[$count_c]}
-            result+="$(( a*b )),"
-            (( count_c+=1 ))
-
-        done
-             count_c=0
-             (( count_r+=1 ))
-    done
-
-           result="${result% }"
-   #     Matrix.show ! "${result}"
-#     Input: matrices A and B
-#     Let C be a new matrix of the appropriate size
-#     For i from 1 to n:
-#         For j from 1 to p:
-#             Let sum = 0
-#             For k from 1 to m:
-#                 Set sum ← sum + Aik × Bkj
-#             Set Cij ← sum
-#     Return C
-
-
-
-
 }
 
 ###### ARITHMETIC OPERATIONS
@@ -444,5 +576,3 @@ function Matrix.xpose.1() {
 function Matrix.inverse() {
     :
 }
-
-Matrix.product A B
