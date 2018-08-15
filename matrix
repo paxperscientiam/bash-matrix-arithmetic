@@ -18,22 +18,23 @@ __="${MATH_ROOT_DIR}"
 
 xstCheck.Matrix() {
     IFS=
-    [[ ! -f "${__}/matrix.$1" ]] && \
-        printf '%s\n' "No such matrix." && return 1
-
-    return
+    if [[ ! -f "${__}/matrix.$1" ]]; then
+        printf '%s\n' "No such matrix."
+        return 4
+    fi
+    return 0
 }
+
 
 errCheck.Matrix() {
     if [[ "${#@}" -eq 0 ]]; then
         printf 'Argument cannot be null.\n'
         return 1
     fi
-
-    if ! xstCheck.Matrix "${@}"
-    then
-        return 1
-    fi
+    :
+#     xstCheck.Matrix "${@}"
+#     echo $?
+#     return
     :
     if [[ ! "${1}"  =~ ^[a-zA-Z]+$ ]]; then
         printf 'Names may only include letters.\n'
@@ -63,8 +64,13 @@ declare -A Y
 
 function Matrix() {
     # Good
- #   errCheck.Matrix "${@}" || return 1
- #   xstCheck.Matrix "${1}" && return 1
+    if xstCheck.Matrix "${@}" >/dev/null 2>&1
+    then
+      read -p "Overwrite? [y/n]" -n 1 -r
+      echo
+      [[ ! $REPLY =~ ^[Yy]$ ]] && return
+    fi
+
     declare -r name="${1}"
     shift
     IFS=
