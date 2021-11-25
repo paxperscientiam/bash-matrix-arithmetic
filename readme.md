@@ -1,4 +1,4 @@
-ONLY USE IF YOU ARE A DEV
+Just for fun
 
 
 Usage:
